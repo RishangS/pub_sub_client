@@ -34,10 +34,10 @@ subscribe(Topic, Port) ->
 					Data = lists:flatten(io_lib:format("~p", [{self(), subscribe, Topic}])),
 					gen_tcp:send(SocketId,Data);
 				Reason ->
-					erlang:display({?MODULE, "ERROR CONNECTION FAILED DUE TO ", Reason})
+					{error, Reason}
 			end;
 		invalid ->
-			erlang:display({?MODULE, "ERROR INVALID PARAMETERS"})
+			{error, invalid_param}
 	end.
 
 %% publish is sent when a client wants to publish a Message to its subscribers
@@ -57,14 +57,11 @@ publish(Topic, Port, Msg) ->
 					gen_tcp:send(SocketId, Data),
 					gen_tcp:close(SocketId);
 				Reason ->
-					erlang:display({?MODULE, "ERROR CONNECTION FAILED DUE TO ", Reason})
+					{error, Reason}
 			end;
 		invalid ->
-			erlang:display({?MODULE, "ERROR INVALID PARAMETERS"})
+			{error, invalid_param}
 	end.
-
-
-
 
 %% unsubscribe is sent when a client wants to unsubscribe a Topic in the server
 %% Args Topic, Server Port
@@ -82,12 +79,11 @@ unsubscribe(Topic,Port) ->
 					gen_tcp:send(SocketId, Data),
 					gen_tcp:close(SocketId);
 				Reason ->
-					erlang:display({?MODULE, "ERROR CONNECTION FAILED DUE TO ", Reason})
+					{error, Reason}
 			end;
 		invalid ->
-			erlang:display({?MODULE, "ERROR INVALID PARAMETERS"})
+			{error, invalid_param}
 	end.
-
 
 %% disconnect is sent when a client wants to disconnect from the server
 %% Args Topic, Server Port
@@ -105,20 +101,18 @@ disconnect(Topic, Port)->
 					gen_tcp:send(SocketId, Data),
 					gen_tcp:close(SocketId);
 				Reason ->
-					erlang:display({?MODULE, "ERROR CONNECTION FAILED DUE TO ", Reason})
+					{error, Reason}
 			end;
 		invalid ->
-			erlang:display({?MODULE, "ERROR INVALID PARAMETERS"})
+			{error, invalid_param}
 	end.
-
 
 %% wait_for_msg is a reciving loop which waits to recieve data from the publisher
 wait_for_msg(Socket) ->
-
+	timer:sleep(50),
     case gen_tcp:recv(Socket, 0) of
         {ok, Data} ->
-        	% erlang:display({?MODULE, wait_for_msg, Data, Socket}),
-        	io:format("Data recieved : ~p ~n",[Data]),
+        	io:format("Data recieved : ~p ~n",[Data]),	
         	Data;
         {error, Reason} ->
         	erlang:display({?MODULE, wait_for_msg,connection_closed, Reason}),
@@ -128,33 +122,15 @@ wait_for_msg(Socket) ->
     end,
     wait_for_msg(Socket).
 
+%% Validation logic for passed parameters
 validate(Parameter, Value)->
 	case Parameter of
 		port ->
 			if (Value > 1024) andalso (Value < 65535) ->
-				erlang:display({"VALID PORT", Value}),
 					valid;
 				true ->
-				erlang:display({?MODULE, "ERROR INVALID PORT", Value}),
 					invalid
 			end;
 		_ ->
-			erlang:display({?MODULE, Parameter ,"validation not available in code"}),
 			invalid
 	end.
-
-% setup(?TABLE) ->
-% 	case ets:whereis(?TABLE) of
-% 		undefined ->
-% 			ets:new(?TABLE, [set, named_table, private]);
-% 		_Tid -> ok
-% 	end.
-
-% add_to_db(Socket) ->
-% 	setup(?TABLE),
-% 	ets:insert(?TABLE, {socket, Socket}).
-
-% read_socketID() ->
-% 	setup(?TABLE),
-% 	[{socket, SocketId}] = ets:lookup(?TABLE, socket),
-% 	SocketId.
