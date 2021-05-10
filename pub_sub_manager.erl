@@ -56,8 +56,8 @@ publish(Topic, Port, Msg) ->
 					Data = lists:flatten(io_lib:format("~p", [{self(), publish, Topic, Msg}])),
 					gen_tcp:send(SocketId, Data),
 					gen_tcp:close(SocketId);
-				_ ->
-					erlang:display({?MODULE, "ERROR INVALID PARAMETERS"})
+				Reason ->
+					erlang:display({?MODULE, "ERROR CONNECTION FAILED DUE TO ", Reason})
 			end;
 		invalid ->
 			erlang:display({?MODULE, "ERROR INVALID PARAMETERS"})
@@ -81,8 +81,8 @@ unsubscribe(Topic,Port) ->
 					Data = lists:flatten(io_lib:format("~p", [{self(), unsubscribe, Topic}])),
 					gen_tcp:send(SocketId, Data),
 					gen_tcp:close(SocketId);
-				_ ->
-					erlang:display({?MODULE, "ERROR INVALID PARAMETERS"})
+				Reason ->
+					erlang:display({?MODULE, "ERROR CONNECTION FAILED DUE TO ", Reason})
 			end;
 		invalid ->
 			erlang:display({?MODULE, "ERROR INVALID PARAMETERS"})
@@ -104,8 +104,8 @@ disconnect(Topic, Port)->
 					Data = lists:flatten(io_lib:format("~p", [{self(), disconnect, Topic}])),
 					gen_tcp:send(SocketId, Data),
 					gen_tcp:close(SocketId);
-				_ ->
-					erlang:display({?MODULE, "ERROR INVALID PARAMETERS"})
+				Reason ->
+					erlang:display({?MODULE, "ERROR CONNECTION FAILED DUE TO ", Reason})
 			end;
 		invalid ->
 			erlang:display({?MODULE, "ERROR INVALID PARAMETERS"})
@@ -117,7 +117,8 @@ wait_for_msg(Socket) ->
 
     case gen_tcp:recv(Socket, 0) of
         {ok, Data} ->
-        	erlang:display({?MODULE, wait_for_msg, Data, Socket}),
+        	% erlang:display({?MODULE, wait_for_msg, Data, Socket}),
+        	io:format("Data recieved : ~p ~n",[Data]),
         	Data;
         {error, Reason} ->
         	erlang:display({?MODULE, wait_for_msg,connection_closed, Reason}),
