@@ -32,7 +32,8 @@ subscribe(Topic, Port) ->
 				{ok, SocketId} ->
 					spawn(?MODULE, wait_for_msg, [SocketId]),
 					Data = lists:flatten(io_lib:format("~p", [{self(), subscribe, Topic}])),
-					gen_tcp:send(SocketId,Data);
+					gen_tcp:send(SocketId,Data),
+					{ok,SocketId};
 				Reason ->
 					{error, Reason}
 			end;
@@ -55,7 +56,8 @@ publish(Topic, Port, Msg) ->
 				{ok, SocketId} ->
 					Data = lists:flatten(io_lib:format("~p", [{self(), publish, Topic, Msg}])),
 					gen_tcp:send(SocketId, Data),
-					gen_tcp:close(SocketId);
+					gen_tcp:close(SocketId),
+					{publish, success};
 				Reason ->
 					{error, Reason}
 			end;
@@ -77,7 +79,8 @@ unsubscribe(Topic,Port) ->
 				{ok, SocketId} ->
 					Data = lists:flatten(io_lib:format("~p", [{self(), unsubscribe, Topic}])),
 					gen_tcp:send(SocketId, Data),
-					gen_tcp:close(SocketId);
+					gen_tcp:close(SocketId),
+					{unsubscribe, success};
 				Reason ->
 					{error, Reason}
 			end;
@@ -99,7 +102,8 @@ disconnect(Topic, Port)->
 				{ok, SocketId} ->
 					Data = lists:flatten(io_lib:format("~p", [{self(), disconnect, Topic}])),
 					gen_tcp:send(SocketId, Data),
-					gen_tcp:close(SocketId);
+					gen_tcp:close(SocketId),
+					{disconnect, success};
 				Reason ->
 					{error, Reason}
 			end;
